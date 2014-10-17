@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
 
 
 namespace Thslating
@@ -27,7 +29,7 @@ namespace Thslating
         /// <param name="languagePair">2 letter Language Pair, delimited by "|".
         /// E.g. "ar|en" language pair means to translate from Arabic to English</param>
         /// <returns>Translated to String</returns>
-        public string TranslateText(
+        public string TranslateGoogleText(
             string input,
             string languagePair)
         {
@@ -47,10 +49,34 @@ namespace Thslating
           //  result = result.Substring(0, result.IndexOf("</div"));
             return result;
         }
+        public string TranslateYandexText(
+         string input,
+         string language)
+        {
+            string userKey = "trnsl.1.1.20141017T075601Z.8466c9109acea7a9.43d3aaa48f8730c642fb563b8676aefcb3536aba";
+            string url = String.Format("https://translate.yandex.net/api/v1.5/tr/translate?key={0}&text={1}&lang={2}", userKey, input,language);
 
+            WebClient webClient = new WebClient();
+            webClient.Encoding = System.Text.Encoding.UTF8;
+
+            string result = webClient.DownloadString(url);
+            string output = "";
+            using (XmlReader reader = XmlReader.Create(new StringReader(result)))
+            {
+                reader.ReadToFollowing("text");
+                output = reader.ReadElementContentAsString();
+            }
+
+            return output;
+        }
         private void button1_Click(object sender, EventArgs e)
         {
-            this.textBox2.Text = TranslateText(this.textBox1.Text, "ru|en");
+            this.textBox2.Text = TranslateGoogleText(this.textBox1.Text, "ru|en");
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            this.textBox2.Text = TranslateYandexText(this.textBox1.Text, "ru-en");
         }
     }
 }
