@@ -13,15 +13,17 @@ using System.Xml;
 using Excel = Microsoft.Office.Interop.Excel;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Data.OleDb;
 
 
 namespace Thslating
 {
     public partial class Form1 : Form
-
-
     {
+        private OleDbConnection con;
+
         private List<string> lstColumns = new List<string>();
+        private List<string> lstColumnsAccess = new List<string>();
         private List<string> lstColumnsForTranslate = new List<string>();
         private List<CellElement> sheetData;
         private string sheetName = "";
@@ -115,14 +117,14 @@ namespace Thslating
                 Excel.Sheets sheets = theWorkbook.Worksheets;
                 Excel.Worksheet worksheet = (Excel.Worksheet)sheets.get_Item(1);
                 sheetName = worksheet.Name;
-                
+
                 tbxSheetName.Text = sheetName;
                 tbxTranslatedSheet.Text = sheetName;
                 tbxTranslatedExcel.Text = dlgOpenFile.FileName.ToString();
 
                 lstColumns = GetColumnsFromExcel(worksheet);
-            
-                
+
+
                 //sheetData = new List<CellElement>();
                 //sheetData = GetDataFromExcelSheet(worksheet, lstColumns);
 
@@ -161,7 +163,7 @@ namespace Thslating
             {
                 for (int j = 1; j <= columnCount; j++)
                 {
-                    lstRows.Add(new CellElement { Name = columnsList[j-1], Value = ((sheet.Cells[i, j].Value == null) ? "" : sheet.Cells[i, j].Value == null).ToString() });
+                    lstRows.Add(new CellElement { Name = columnsList[j - 1], Value = ((sheet.Cells[i, j].Value == null) ? "" : sheet.Cells[i, j].Value == null).ToString() });
                 }
             }
 
@@ -178,7 +180,7 @@ namespace Thslating
 
             for (int i = 1; i <= columnCount; i++)
             {
-                columnValue.Add(sheet.Cells[1,i].Value.ToString());
+                columnValue.Add(sheet.Cells[1, i].Value.ToString());
             }
 
             return columnValue;
@@ -192,8 +194,9 @@ namespace Thslating
 
         private void btnFromTranslate_Click(object sender, EventArgs e)
         {
-            lbxForTranslate.Items.Remove(lbxForTranslate.SelectedItem);
             lstColumnsForTranslate.Remove(lbxExcelColumns.SelectedItem.ToString());
+
+            lbxForTranslate.Items.Remove(lbxForTranslate.SelectedItem);
         }
 
         private void btnTranslateToExcel_Click(object sender, EventArgs e)
@@ -217,7 +220,7 @@ namespace Thslating
 
                 for (int i = 1; i <= lstColumns.Count; i++)
                 {
-                    objSheet.Cells[1, i].Value = lstColumns[i-1];
+                    objSheet.Cells[1, i].Value = lstColumns[i - 1];
                 }
 
                 Excel.Application ExcelApplication = new Excel.Application();
@@ -274,10 +277,142 @@ namespace Thslating
 
                 TimeSpan end = Process.GetCurrentProcess().TotalProcessorTime;
                 t.Stop();
-                MessageBox.Show("Запросов к гуглу: "+countQueries+ "; Ячеек обработано: "+countCells+"; Measured time: " + (end - begin).TotalMilliseconds + " ms. or " + t.Elapsed);
+                MessageBox.Show("Запросов к гуглу: " + countQueries + "; Ячеек обработано: " + countCells + "; Measured time: " + (end - begin).TotalMilliseconds + " ms. or " + t.Elapsed);
             });
-     
-  
+
+
+        }
+
+        private void btnSelectAccess_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dlgOpenFile = new OpenFileDialog();
+
+            dlgOpenFile.InitialDirectory = Application.ExecutablePath.ToString();
+            //  dlgOpenFile.Filter = "Excel files (*.xlsx)|*.xlsx|All files (*.*)|*.*";
+            //     dlgOpenFile.FilterIndex = 1;
+            dlgOpenFile.RestoreDirectory = true;
+
+            if (dlgOpenFile.ShowDialog() == DialogResult.OK)
+            {
+                tbxInputAccess.Text = dlgOpenFile.FileName;
+                string constr = @"Provider=Microsoft.Jet.OLEDB.4.0;Data source=" + dlgOpenFile.FileName;
+                con = new OleDbConnection(constr);
+                con.Open();
+                List<string> tables = new List<string>();
+                foreach (DataRow r in con.GetSchema("Tables").Select("TABLE_TYPE = 'TABLE'"))
+                    tables.Add(r["TABLE_NAME"].ToString());
+                List<string> views = new List<string>();
+                foreach (DataRow r in con.GetSchema("Views").Select())
+                    views.Add(r["VIEW_NAME"].ToString());
+                lbxAccessElements.Items.Clear();
+                foreach (var table in tables)
+                {
+                    lbxAccessElements.Items.Add(table);
+                }
+                foreach (var view in views)
+                {
+                    lbxAccessElements.Items.Add(view);
+                }
+
+                lbxAccessElements.Refresh();
+                con.Close();
+                MessageBox.Show("Data readed");
+            }
+        }
+
+        private void lbxAccessElements_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (this.lbxAccessElements.SelectedItem != null)
+            {
+                string constr = @"Provider=Microsoft.Jet.OLEDB.4.0;Data source=" + this.tbxInputAccess.Text;
+                con = new OleDbConnection(constr);
+                con.Open();
+   
+                lstColumnsAccess = new List<string>();
+                tbxAccessNewElement.Text = lbxAccessElements.SelectedItem + "_Translated";
+                lbxAccessFields.Items.Clear();
+
+                //Create OleDbDataReader and OleDbCommand to return all data from selected table..
+                OleDbDataReader reader;
+                OleDbCommand cmd = new OleDbCommand("SELECT * FROM " + this.lbxAccessElements.SelectedItem.ToString(), con);
+                reader = cmd.ExecuteReader();
+
+                //Create schemaTable
+                DataTable schemaTable = reader.GetSchemaTable();
+                for (int i = 0; i < schemaTable.Rows.Count; i++)
+                {
+                    lstColumnsAccess.Add(schemaTable.Rows[i][0].ToString());
+                    lbxAccessFields.Items.Add(schemaTable.Rows[i][0].ToString());
+                }
+
+                con.Close();
+                lbxAccessFields.Refresh();
+            }
+        }
+
+        private void btnFromAccessToTranslate_Click(object sender, EventArgs e)
+        {
+            lbxForTranslate.Items.Add(this.lbxAccessFields.SelectedItem);
+            lstColumnsForTranslate.Add(lbxAccessFields.SelectedItem.ToString());
+        }
+
+        private void btnFromTranslateToAccess_Click(object sender, EventArgs e)
+        {
+            lstColumnsForTranslate.Remove(lbxForTranslate.SelectedItem.ToString());
+            lbxForTranslate.Items.Remove(lbxForTranslate.SelectedItem);
+
+        }
+
+        private void btnTranslateAccess_Click(object sender, EventArgs e)
+        {
+          
+
+             int countQueries = 0;
+             int countCells = 0;
+
+             string constr = @"Provider=Microsoft.Jet.OLEDB.4.0;Data source=" + this.tbxInputAccess.Text;
+             con = new OleDbConnection(constr);
+             con.Open();
+   
+             OleDbDataReader reader = null;
+             var cmd = new OleDbCommand("select* from " + lbxAccessElements.SelectedItem, con);
+             OleDbCommand cmdInput = new OleDbCommand();
+             string inputText;
+             cmdInput.Connection = con;
+             inputText = "DELETE FROM [" + this.tbxAccessNewElement.Text + "] ";
+             cmdInput.CommandText = inputText;
+             cmdInput.ExecuteNonQuery();
+             reader = cmd.ExecuteReader();
+             string tmp = "";
+             List<string> lstResults;
+             while (reader.Read())
+             {
+                 lstResults = new List<string>();
+                 for (int i = 0; i < reader.FieldCount; i++)
+                 {
+                     if (lstColumnsForTranslate.Contains(lstColumnsAccess[i]))
+                     {
+                         tmp = this.TranslateGoogleText(reader.GetValue(i).ToString(), "ru|en");
+                         countQueries++;
+                     }
+                     else
+                     {
+                         tmp = reader.GetValue(i).ToString();
+                         countCells++;
+                     }
+                     tmp = "'" + tmp + "'";
+                     lstResults.Add(tmp);
+                 }
+                 inputText = "INSERT INTO [" + this.tbxAccessNewElement.Text + "] VALUES (" + string.Join(",", lstResults) + ")";
+                 cmdInput.CommandText = inputText;
+                 cmdInput.ExecuteNonQuery();
+
+             }
+             con.Close();
+
+                MessageBox.Show("Запросов к гуглу: " + countQueries + "; Ячеек обработано: " + countCells + "; ");
+       
+
         }
     }
 }

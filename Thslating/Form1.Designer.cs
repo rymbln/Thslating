@@ -42,6 +42,14 @@
             this.btnTranslateToExcel = new System.Windows.Forms.Button();
             this.tbxTranslatedSheet = new System.Windows.Forms.TextBox();
             this.tbxTranslatedExcel = new System.Windows.Forms.TextBox();
+            this.btnSelectAccess = new System.Windows.Forms.Button();
+            this.tbxInputAccess = new System.Windows.Forms.TextBox();
+            this.btnFromAccessToTranslate = new System.Windows.Forms.Button();
+            this.btnFromTranslateToAccess = new System.Windows.Forms.Button();
+            this.lbxAccessElements = new System.Windows.Forms.ListBox();
+            this.lbxAccessFields = new System.Windows.Forms.ListBox();
+            this.tbxAccessNewElement = new System.Windows.Forms.TextBox();
+            this.btnTranslateAccess = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // textBox1
@@ -100,7 +108,7 @@
             this.lbxExcelColumns.FormattingEnabled = true;
             this.lbxExcelColumns.Location = new System.Drawing.Point(13, 70);
             this.lbxExcelColumns.Name = "lbxExcelColumns";
-            this.lbxExcelColumns.Size = new System.Drawing.Size(289, 316);
+            this.lbxExcelColumns.Size = new System.Drawing.Size(289, 186);
             this.lbxExcelColumns.TabIndex = 6;
             // 
             // tbxSheetName
@@ -115,14 +123,14 @@
             this.lbxForTranslate.FormattingEnabled = true;
             this.lbxForTranslate.Location = new System.Drawing.Point(346, 136);
             this.lbxForTranslate.Name = "lbxForTranslate";
-            this.lbxForTranslate.Size = new System.Drawing.Size(259, 251);
+            this.lbxForTranslate.Size = new System.Drawing.Size(259, 121);
             this.lbxForTranslate.TabIndex = 8;
             // 
             // btnFromTranslate
             // 
-            this.btnFromTranslate.Location = new System.Drawing.Point(308, 280);
+            this.btnFromTranslate.Location = new System.Drawing.Point(308, 199);
             this.btnFromTranslate.Name = "btnFromTranslate";
-            this.btnFromTranslate.Size = new System.Drawing.Size(33, 107);
+            this.btnFromTranslate.Size = new System.Drawing.Size(33, 61);
             this.btnFromTranslate.TabIndex = 9;
             this.btnFromTranslate.Text = "<---";
             this.btnFromTranslate.UseVisualStyleBackColor = true;
@@ -130,9 +138,9 @@
             // 
             // btnToTranslate
             // 
-            this.btnToTranslate.Location = new System.Drawing.Point(308, 167);
+            this.btnToTranslate.Location = new System.Drawing.Point(307, 136);
             this.btnToTranslate.Name = "btnToTranslate";
-            this.btnToTranslate.Size = new System.Drawing.Size(33, 107);
+            this.btnToTranslate.Size = new System.Drawing.Size(33, 57);
             this.btnToTranslate.TabIndex = 10;
             this.btnToTranslate.Text = "--->";
             this.btnToTranslate.UseVisualStyleBackColor = true;
@@ -162,11 +170,90 @@
             this.tbxTranslatedExcel.Size = new System.Drawing.Size(229, 20);
             this.tbxTranslatedExcel.TabIndex = 13;
             // 
+            // btnSelectAccess
+            // 
+            this.btnSelectAccess.Location = new System.Drawing.Point(226, 271);
+            this.btnSelectAccess.Name = "btnSelectAccess";
+            this.btnSelectAccess.Size = new System.Drawing.Size(75, 23);
+            this.btnSelectAccess.TabIndex = 15;
+            this.btnSelectAccess.Text = "Access";
+            this.btnSelectAccess.UseVisualStyleBackColor = true;
+            this.btnSelectAccess.Click += new System.EventHandler(this.btnSelectAccess_Click);
+            // 
+            // tbxInputAccess
+            // 
+            this.tbxInputAccess.Location = new System.Drawing.Point(12, 273);
+            this.tbxInputAccess.Name = "tbxInputAccess";
+            this.tbxInputAccess.Size = new System.Drawing.Size(208, 20);
+            this.tbxInputAccess.TabIndex = 14;
+            // 
+            // btnFromAccessToTranslate
+            // 
+            this.btnFromAccessToTranslate.Location = new System.Drawing.Point(347, 263);
+            this.btnFromAccessToTranslate.Name = "btnFromAccessToTranslate";
+            this.btnFromAccessToTranslate.Size = new System.Drawing.Size(99, 31);
+            this.btnFromAccessToTranslate.TabIndex = 16;
+            this.btnFromAccessToTranslate.Text = "TO";
+            this.btnFromAccessToTranslate.UseVisualStyleBackColor = true;
+            this.btnFromAccessToTranslate.Click += new System.EventHandler(this.btnFromAccessToTranslate_Click);
+            // 
+            // btnFromTranslateToAccess
+            // 
+            this.btnFromTranslateToAccess.Location = new System.Drawing.Point(452, 263);
+            this.btnFromTranslateToAccess.Name = "btnFromTranslateToAccess";
+            this.btnFromTranslateToAccess.Size = new System.Drawing.Size(153, 31);
+            this.btnFromTranslateToAccess.TabIndex = 17;
+            this.btnFromTranslateToAccess.Text = "FROM";
+            this.btnFromTranslateToAccess.UseVisualStyleBackColor = true;
+            this.btnFromTranslateToAccess.Click += new System.EventHandler(this.btnFromTranslateToAccess_Click);
+            // 
+            // lbxAccessElements
+            // 
+            this.lbxAccessElements.FormattingEnabled = true;
+            this.lbxAccessElements.Location = new System.Drawing.Point(13, 300);
+            this.lbxAccessElements.Name = "lbxAccessElements";
+            this.lbxAccessElements.Size = new System.Drawing.Size(289, 186);
+            this.lbxAccessElements.TabIndex = 18;
+            this.lbxAccessElements.SelectedIndexChanged += new System.EventHandler(this.lbxAccessElements_SelectedIndexChanged);
+            // 
+            // lbxAccessFields
+            // 
+            this.lbxAccessFields.FormattingEnabled = true;
+            this.lbxAccessFields.Location = new System.Drawing.Point(329, 300);
+            this.lbxAccessFields.Name = "lbxAccessFields";
+            this.lbxAccessFields.Size = new System.Drawing.Size(289, 186);
+            this.lbxAccessFields.TabIndex = 19;
+            // 
+            // tbxAccessNewElement
+            // 
+            this.tbxAccessNewElement.Location = new System.Drawing.Point(637, 274);
+            this.tbxAccessNewElement.Name = "tbxAccessNewElement";
+            this.tbxAccessNewElement.Size = new System.Drawing.Size(229, 20);
+            this.tbxAccessNewElement.TabIndex = 20;
+            // 
+            // btnTranslateAccess
+            // 
+            this.btnTranslateAccess.Location = new System.Drawing.Point(637, 300);
+            this.btnTranslateAccess.Name = "btnTranslateAccess";
+            this.btnTranslateAccess.Size = new System.Drawing.Size(229, 23);
+            this.btnTranslateAccess.TabIndex = 21;
+            this.btnTranslateAccess.Text = "btnTranslateAccess";
+            this.btnTranslateAccess.UseVisualStyleBackColor = true;
+            this.btnTranslateAccess.Click += new System.EventHandler(this.btnTranslateAccess_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(894, 517);
+            this.Controls.Add(this.btnTranslateAccess);
+            this.Controls.Add(this.tbxAccessNewElement);
+            this.Controls.Add(this.lbxAccessFields);
+            this.Controls.Add(this.lbxAccessElements);
+            this.Controls.Add(this.btnFromTranslateToAccess);
+            this.Controls.Add(this.btnFromAccessToTranslate);
+            this.Controls.Add(this.btnSelectAccess);
+            this.Controls.Add(this.tbxInputAccess);
             this.Controls.Add(this.tbxTranslatedExcel);
             this.Controls.Add(this.tbxTranslatedSheet);
             this.Controls.Add(this.btnTranslateToExcel);
@@ -204,6 +291,14 @@
         private System.Windows.Forms.Button btnTranslateToExcel;
         private System.Windows.Forms.TextBox tbxTranslatedSheet;
         private System.Windows.Forms.TextBox tbxTranslatedExcel;
+        private System.Windows.Forms.Button btnSelectAccess;
+        private System.Windows.Forms.TextBox tbxInputAccess;
+        private System.Windows.Forms.Button btnFromAccessToTranslate;
+        private System.Windows.Forms.Button btnFromTranslateToAccess;
+        private System.Windows.Forms.ListBox lbxAccessElements;
+        private System.Windows.Forms.ListBox lbxAccessFields;
+        private System.Windows.Forms.TextBox tbxAccessNewElement;
+        private System.Windows.Forms.Button btnTranslateAccess;
     }
 }
 
