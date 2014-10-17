@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using System.Xml;
 using Excel = Microsoft.Office.Interop.Excel;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 
 namespace Thslating
@@ -133,7 +134,7 @@ namespace Thslating
                 this.lbxExcelColumns.Refresh();
                 this.lbxForTranslate.Items.Clear();
                 this.lbxForTranslate.Refresh();
-
+                theWorkbook.Close();
                 while (Marshal.ReleaseComObject(theWorkbook) > 0)
                 { }
                 while (Marshal.ReleaseComObject(theWorkbook) > 0)
@@ -186,57 +187,66 @@ namespace Thslating
         private void btnToTranslate_Click(object sender, EventArgs e)
         {
             lbxForTranslate.Items.Add(lbxExcelColumns.SelectedItem);
-            lstColumnsForTranslate.Add(lbxExcelColumns.SelectedValue.ToString());
+            lstColumnsForTranslate.Add(lbxExcelColumns.SelectedItem.ToString());
         }
 
         private void btnFromTranslate_Click(object sender, EventArgs e)
         {
             lbxForTranslate.Items.Remove(lbxForTranslate.SelectedItem);
-            lstColumnsForTranslate.Remove(lbxExcelColumns.SelectedValue.ToString());
+            lstColumnsForTranslate.Remove(lbxExcelColumns.SelectedItem.ToString());
         }
 
         private void btnTranslateToExcel_Click(object sender, EventArgs e)
         {
-
-     
-            var filename = tbxTranslatedExcel.Text;
-
-            Excel.Application objExcel = new Excel.Application();
-            objExcel.ScreenUpdating = false;
-            objExcel.DisplayAlerts = false;
-            objExcel.Workbooks.Add();
-            Excel.Workbook objWorkbook = objExcel.Workbooks[1];
-            Excel.Worksheet objSheet = (Excel.Worksheet)objWorkbook.Sheets.get_Item(1);
-            objSheet.Name = tbxTranslatedSheet.Text;
-
-            for (int i = 1; i <= lstColumns.Count; i++)
+            var task = Task.Factory.StartNew(() =>
             {
-                objSheet.Cells[1, i].Value = lstColumns[i];
-            }
-
-            Excel.Application ExcelApplication = new Excel.Application();
-              Excel.Workbook theWorkbook = ExcelApplication.Workbooks.Open(tbxExcelFile.Text, 0, true, 5, "", "", true, Excel.XlPlatform.xlWindows, "\t", false, false, 0, true, false, false);
-            Excel.Sheets sheets = theWorkbook.Worksheets;
-            Excel.Worksheet sheet = (Excel.Worksheet)sheets.get_Item(1);
+                var t = new Stopwatch();
+                t.Start();
+                TimeSpan begin = Process.GetCurrentProcess().TotalProcessorTime;
 
 
-            int rowCount = sheet.UsedRange.Rows.Count;
-            int columnCount = sheet.UsedRange.Columns.Count;
-            var cellElem = new CellElement();
-            for (int i = 2; i <= rowCount; i++)
-            {
-                for (int j = 1; j <= columnCount; j++)
+                var filename = tbxTranslatedExcel.Text;
+
+                Excel.Application objExcel = new Excel.Application();
+                objExcel.ScreenUpdating = false;
+                objExcel.DisplayAlerts = false;
+                objExcel.Workbooks.Add();
+                Excel.Workbook objWorkbook = objExcel.Workbooks[1];
+                Excel.Worksheet objSheet = (Excel.Worksheet)objWorkbook.Sheets.get_Item(1);
+                objSheet.Name = tbxTranslatedSheet.Text;
+
+                for (int i = 1; i <= lstColumns.Count; i++)
                 {
-                    cellElem = new CellElement { Name = lstColumns[j - 1], Value = ((sheet.Cells[i, j].Value == null) ? "" : sheet.Cells[i, j].Value == null).ToString() };
-                    if (lstColumnsForTranslate.Contains(cellElem.Name))
-                    {
-                        cellElem.Value = TranslateGoogleText(cellElem.Value, "ru|en");
-                    }
-                    objSheet.Cells[i, j].Value = cellElem.Value;
+                    objSheet.Cells[1, i].Value = lstColumns[i-1];
                 }
-            }
-                objWorkbook.SaveAs();
-                objWorkbook.SaveAs(tbxExcelFile.Text, Excel.XlFileFormat.xlWorkbookDefault, Type.Missing, Type.Missing, false, false, Excel.XlSaveAsAccessMode.xlNoChange, Excel.XlSaveConflictResolution.xlLocalSessionChanges, Type.Missing, Type.Missing);
+
+                Excel.Application ExcelApplication = new Excel.Application();
+                Excel.Workbook theWorkbook = ExcelApplication.Workbooks.Open(tbxExcelFile.Text, 0, true, 5, "", "", true, Excel.XlPlatform.xlWindows, "\t", false, false, 0, true, false, false);
+                Excel.Sheets sheets = theWorkbook.Worksheets;
+                Excel.Worksheet sheet = (Excel.Worksheet)sheets.get_Item(1);
+
+
+                int rowCount = sheet.UsedRange.Rows.Count;
+                int columnCount = sheet.UsedRange.Columns.Count;
+                var cellElem = new CellElement();
+                int countQueries = 0;
+                int countCells = 0;
+                for (int i = 2; i <= rowCount; i++)
+                {
+                    for (int j = 1; j <= columnCount; j++)
+                    {
+                        cellElem = new CellElement { Name = lstColumns[j - 1], Value = ((sheet.Cells[i, j].Value == null) ? "" : sheet.Cells[i, j].Value).ToString() };
+                        if (lstColumnsForTranslate.Contains(cellElem.Name))
+                        {
+                            cellElem.Value = TranslateGoogleText(cellElem.Value, "ru|en");
+                            countQueries++;
+                        }
+                        objSheet.Cells[i, j].Value = cellElem.Value;
+                        countCells++;
+                    }
+                }
+                objWorkbook.SaveAs(tbxTranslatedExcel.Text);
+                //objWorkbook.SaveAs(tbxExcelFile.Text, Excel.XlFileFormat.xlWorkbookDefault, Type.Missing, Type.Missing, false, false, Excel.XlSaveAsAccessMode.xlNoChange, Excel.XlSaveConflictResolution.xlLocalSessionChanges, Type.Missing, Type.Missing);
 
                 objWorkbook.Close();
                 theWorkbook.Close();
@@ -249,7 +259,7 @@ namespace Thslating
                 while (Marshal.ReleaseComObject(theWorkbook) > 0)
                 { }
 
-                    objExcel.Quit();
+                objExcel.Quit();
 
                 while (Marshal.ReleaseComObject(objExcel) > 0)
                 { }
@@ -259,6 +269,15 @@ namespace Thslating
                 while (Marshal.ReleaseComObject(ExcelApplication) > 0)
                 { }
                 MessageBox.Show("Перевод окончен");
+
+
+
+                TimeSpan end = Process.GetCurrentProcess().TotalProcessorTime;
+                t.Stop();
+                MessageBox.Show("Запросов к гуглу: "+countQueries+ "; Ячеек обработано: "+countCells+"; Measured time: " + (end - begin).TotalMilliseconds + " ms. or " + t.Elapsed);
+            });
+     
+  
         }
     }
 }
