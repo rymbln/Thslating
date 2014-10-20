@@ -68,7 +68,7 @@ namespace Thslating
 
             // result = result.Substring(result.IndexOf("id=result_box") + 22, result.IndexOf("id=result_box") + 500);
             //  result = result.Substring(0, result.IndexOf("</div"));
-            return result;
+            return result.Replace("'", "");
         }
         public string TranslateYandexText(
          string input,
@@ -88,7 +88,7 @@ namespace Thslating
                 output = reader.ReadElementContentAsString();
             }
 
-            return output;
+            return output.Replace("'","");
         }
         private void button1_Click(object sender, EventArgs e)
         {
@@ -327,14 +327,14 @@ namespace Thslating
                 string constr = @"Provider=Microsoft.Jet.OLEDB.4.0;Data source=" + this.tbxInputAccess.Text;
                 con = new OleDbConnection(constr);
                 con.Open();
-   
+
                 lstColumnsAccess = new List<string>();
                 tbxAccessNewElement.Text = lbxAccessElements.SelectedItem + "_Translated";
                 lbxAccessFields.Items.Clear();
 
                 //Create OleDbDataReader and OleDbCommand to return all data from selected table..
                 OleDbDataReader reader;
-                OleDbCommand cmd = new OleDbCommand("SELECT * FROM " + this.lbxAccessElements.SelectedItem.ToString(), con);
+                OleDbCommand cmd = new OleDbCommand("SELECT * FROM [" + this.lbxAccessElements.SelectedItem.ToString() + "]", con);
                 reader = cmd.ExecuteReader();
 
                 //Create schemaTable
@@ -365,53 +365,121 @@ namespace Thslating
 
         private void btnTranslateAccess_Click(object sender, EventArgs e)
         {
-          
 
-             int countQueries = 0;
-             int countCells = 0;
 
-             string constr = @"Provider=Microsoft.Jet.OLEDB.4.0;Data source=" + this.tbxInputAccess.Text;
-             con = new OleDbConnection(constr);
-             con.Open();
-   
-             OleDbDataReader reader = null;
-             var cmd = new OleDbCommand("select* from " + lbxAccessElements.SelectedItem, con);
-             OleDbCommand cmdInput = new OleDbCommand();
-             string inputText;
-             cmdInput.Connection = con;
-             inputText = "DELETE FROM [" + this.tbxAccessNewElement.Text + "] ";
-             cmdInput.CommandText = inputText;
-             cmdInput.ExecuteNonQuery();
-             reader = cmd.ExecuteReader();
-             string tmp = "";
-             List<string> lstResults;
-             while (reader.Read())
-             {
-                 lstResults = new List<string>();
-                 for (int i = 0; i < reader.FieldCount; i++)
-                 {
-                     if (lstColumnsForTranslate.Contains(lstColumnsAccess[i]))
-                     {
-                         tmp = this.TranslateGoogleText(reader.GetValue(i).ToString(), "ru|en");
-                         countQueries++;
-                     }
-                     else
-                     {
-                         tmp = reader.GetValue(i).ToString();
-                         countCells++;
-                     }
-                     tmp = "'" + tmp + "'";
-                     lstResults.Add(tmp);
-                 }
-                 inputText = "INSERT INTO [" + this.tbxAccessNewElement.Text + "] VALUES (" + string.Join(",", lstResults) + ")";
-                 cmdInput.CommandText = inputText;
-                 cmdInput.ExecuteNonQuery();
+            int countQueries = 0;
+            int countCells = 0;
 
-             }
-             con.Close();
+            string constr = @"Provider=Microsoft.Jet.OLEDB.4.0;Data source=" + this.tbxInputAccess.Text;
+            con = new OleDbConnection(constr);
+            con.Open();
 
-                MessageBox.Show("Запросов к гуглу: " + countQueries + "; Ячеек обработано: " + countCells + "; ");
-       
+            OleDbDataReader reader = null;
+            var cmd = new OleDbCommand("select* from [" + lbxAccessElements.SelectedItem + "]", con);
+            OleDbCommand cmdInput = new OleDbCommand();
+            string inputText;
+            cmdInput.Connection = con;
+            inputText = "DELETE FROM [" + this.tbxAccessNewElement.Text + "] ";
+            cmdInput.CommandText = inputText;
+            cmdInput.ExecuteNonQuery();
+            reader = cmd.ExecuteReader();
+            string tmp = "";
+            List<string> lstResults;
+            while (reader.Read())
+            {
+                try
+                {
+                    lstResults = new List<string>();
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        if (lstColumnsForTranslate.Contains(lstColumnsAccess[i]))
+                        {
+                            tmp = this.TranslateGoogleText(reader.GetValue(i).ToString(), "ru|en");
+                            countQueries++;
+                        }
+                        else
+                        {
+                            tmp = reader.GetValue(i).ToString();
+                            countCells++;
+                        }
+                        tmp = "'" + tmp + "'";
+                        lstResults.Add(tmp);
+                    }
+                    inputText = "INSERT INTO [" + this.tbxAccessNewElement.Text + "] VALUES (" + string.Join(",", lstResults) + ")";
+                    cmdInput.CommandText = inputText;
+                    cmdInput.ExecuteNonQuery();
+
+                }
+
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+            con.Close();
+
+            MessageBox.Show("Запросов к гуглу: " + countQueries + "; Ячеек обработано: " + countCells + "; ");
+
+
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+
+            int countQueries = 0;
+            int countCells = 0;
+
+            string constr = @"Provider=Microsoft.Jet.OLEDB.4.0;Data source=" + this.tbxInputAccess.Text;
+            con = new OleDbConnection(constr);
+            con.Open();
+
+            OleDbDataReader reader = null;
+            var cmd = new OleDbCommand("select* from [" + lbxAccessElements.SelectedItem + "]", con);
+            OleDbCommand cmdInput = new OleDbCommand();
+            string inputText;
+            cmdInput.Connection = con;
+            inputText = "DELETE FROM [" + this.tbxAccessNewElement.Text + "] ";
+            cmdInput.CommandText = inputText;
+            cmdInput.ExecuteNonQuery();
+            reader = cmd.ExecuteReader();
+            string tmp = "";
+            List<string> lstResults;
+            while (reader.Read())
+            {
+                try
+                {
+
+
+                    lstResults = new List<string>();
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        if (lstColumnsForTranslate.Contains(lstColumnsAccess[i]))
+                        {
+                            tmp = this.TranslateYandexText(reader.GetValue(i).ToString(), "ru-en");
+                            countQueries++;
+                        }
+                        else
+                        {
+                            tmp = reader.GetValue(i).ToString();
+                            countCells++;
+                        }
+                        tmp = "'" + tmp + "'";
+                        lstResults.Add(tmp);
+                    }
+                    inputText = "INSERT INTO [" + this.tbxAccessNewElement.Text + "] VALUES (" + string.Join(",", lstResults) + ")";
+                    cmdInput.CommandText = inputText;
+                    cmdInput.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+
+            }
+            con.Close();
+
+            MessageBox.Show("Запросов к гуглу: " + countQueries + "; Ячеек обработано: " + countCells + "; ");
 
         }
     }
