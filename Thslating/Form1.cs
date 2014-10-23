@@ -352,8 +352,13 @@ namespace Thslating
 
         private void btnFromAccessToTranslate_Click(object sender, EventArgs e)
         {
-            lbxForTranslate.Items.Add(this.lbxAccessFields.SelectedItem);
-            lstColumnsForTranslate.Add(lbxAccessFields.SelectedItem.ToString());
+            foreach (var item in this.lbxAccessFields.SelectedItems )
+            {
+                lbxForTranslate.Items.Add(item);
+                lstColumnsForTranslate.Add(item.ToString());
+                
+            }
+
         }
 
         private void btnFromTranslateToAccess_Click(object sender, EventArgs e)
@@ -449,22 +454,26 @@ namespace Thslating
             {
                 try
                 {
-
+              
 
                     lstResults = new List<string>();
                     for (int i = 0; i < reader.FieldCount; i++)
                     {
+                        tmp = "";
                         if (lstColumnsForTranslate.Contains(lstColumnsAccess[i]))
                         {
-                            tmp = this.TranslateYandexText(reader.GetValue(i).ToString(), "ru-en");
-                            countQueries++;
+                            if (reader.GetValue(i).ToString().Length > 0)
+                            {
+                                tmp = this.TranslateYandexText(reader.GetValue(i).ToString(), "ru-en");
+                                countQueries++;
+                            }
                         }
                         else
                         {
                             tmp = reader.GetValue(i).ToString();
                             countCells++;
                         }
-                        tmp = "'" + tmp + "'";
+                        tmp = "'" + tmp.Replace("'","") + "'";
                         lstResults.Add(tmp);
                     }
                     inputText = "INSERT INTO [" + this.tbxAccessNewElement.Text + "] VALUES (" + string.Join(",", lstResults) + ")";

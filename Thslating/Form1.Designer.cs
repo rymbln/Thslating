@@ -222,6 +222,7 @@
             this.lbxAccessFields.FormattingEnabled = true;
             this.lbxAccessFields.Location = new System.Drawing.Point(329, 300);
             this.lbxAccessFields.Name = "lbxAccessFields";
+            this.lbxAccessFields.SelectionMode = System.Windows.Forms.SelectionMode.MultiSimple;
             this.lbxAccessFields.Size = new System.Drawing.Size(289, 186);
             this.lbxAccessFields.TabIndex = 19;
             // 
